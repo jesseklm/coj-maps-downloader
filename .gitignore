@@ -1,0 +1,9 @@
+.idea/
+.venv/
+*.build/
+*.dist/
+*.onefile-build/
+*.bin
+*.exe
+custom_servers.py
+ui/*.py
