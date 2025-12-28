@@ -1,5 +1,6 @@
 # coj-maps-downloader
 Call of Juarez: Bound in Blood - Maps Downloader + Server List Mod Patcher (Windows + Linux)
+<img width="880" height="658" alt="Screenshot" src="https://github.com/user-attachments/assets/be8b8dcb-2ec1-4a89-aba1-dc4f13c37024" />
 
 ## Sources
 
