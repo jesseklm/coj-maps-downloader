@@ -11,13 +11,13 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: pip install --no-cache-dir --prefer-binary -r requirements.txt
       - run: ui/make.bat
-      - uses: Nuitka/Nuitka-Action@v1.3
+      - uses: Nuitka/Nuitka-Action@v1.4
         with:
           script-name: coj_maps_downloader.py
           msvc: latest
