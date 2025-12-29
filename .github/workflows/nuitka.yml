@@ -1,37 +1,80 @@
-name: build .exe
+name: build release (win + linux)
 
 on:
   push:
     tags: [ '*.*.*' ]
 
+env:
+  VERSION: ${{ github.ref_name }}
+
 jobs:
   build:
-    runs-on: windows-latest
-    permissions:
-      contents: write
+    name: build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+            nuitka_output: coj_maps_downloader.exe
+          - os: ubuntu-latest
+            platform: linux
+            nuitka_output: coj_maps_downloader
 
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
-      - run: pip install --no-cache-dir --prefer-binary -r requirements.txt
-      - run: ui/make.bat
+      - name: Install deps
+        run: pip install --no-cache-dir --prefer-binary -r requirements.txt
+      - name: Build UI (Windows)
+        if: runner.os == 'Windows'
+        run: ui/make.bat
+      - name: Build UI (Linux)
+        if: runner.os == 'Linux'
+        working-directory: ui
+        run: make
       - uses: Nuitka/Nuitka-Action@v1.4
         with:
           script-name: coj_maps_downloader.py
           msvc: latest
           mode: standalone
-          output-file: coj_maps_downloader.exe
+          output-file: ${{ matrix.nuitka_output }}
           windows-console-mode: disable
           enable-plugins: pyside6
-      - run: cp LICENSE build/coj_maps_downloader.dist/
-      - uses: thedoctor0/zip-release@0.7.6
+      - name: Add LICENSE
+        shell: bash
+        run: cp LICENSE build/coj_maps_downloader.dist/
+      - name: Create archive
+        uses: thedoctor0/zip-release@0.7.6
         with:
-          filename: coj-maps-downloader.zip
+          filename: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.zip
           directory: build/coj_maps_downloader.dist/
           type: 7z
-      - run: dir -s
-      - uses: ncipollo/release-action@v1
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v6
         with:
-          artifacts: build/coj_maps_downloader.dist/coj-maps-downloader.zip
+          name: coj-maps-downloader-${{ matrix.platform }}
+          path: build/coj_maps_downloader.dist/coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.zip
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create/Update GitHub Release and upload assets
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          artifacts: dist/*.zip
+          generateReleaseNotes: true
