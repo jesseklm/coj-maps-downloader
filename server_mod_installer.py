@@ -113,8 +113,9 @@ class ServerModInstaller:
                     self.log_func(f'{file_name} hash mismatch!')
                     return
                 file_path = self.coj_path / file_name
-                file_bak = next_bak_path(file_path)
-                file_path.rename(file_bak)
+                if current_hash is not None:
+                    file_bak = next_bak_path(file_path)
+                    file_path.rename(file_bak)
                 print('writing to', file_path)
                 await write_bytes_to_file(file_path, file)
                 print(file_name, file_hash_zip)
