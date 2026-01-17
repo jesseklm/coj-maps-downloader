@@ -17,9 +17,15 @@ jobs:
         include:
           - os: windows-latest
             platform: windows
+            nuitka_mode: standalone
+            nuitka_output: coj_maps_downloader.exe
+          - os: windows-latest
+            platform: windows
+            nuitka_mode: onefile
             nuitka_output: coj_maps_downloader.exe
           - os: ubuntu-latest
             platform: linux
+            nuitka_mode: standalone
             nuitka_output: coj_maps_downloader
 
     steps:
@@ -36,28 +42,37 @@ jobs:
         if: runner.os == 'Linux'
         working-directory: ui
         run: make
-      - uses: Nuitka/Nuitka-Action@v1.4
+      - name: Nuitka Build
+        if: matrix.nuitka_mode == 'standalone'
+        uses: Nuitka/Nuitka-Action@v1.4
         with:
           script-name: coj_maps_downloader.py
           msvc: latest
-          mode: standalone
+          mode: ${{ matrix.nuitka_mode }}
           output-file: ${{ matrix.nuitka_output }}
-          windows-console-mode: disable
-          enable-plugins: pyside6
       - name: Add LICENSE
+        if: matrix.nuitka_mode == 'standalone'
         shell: bash
         run: cp LICENSE build/coj_maps_downloader.dist/
       - name: Create archive
+        if: matrix.nuitka_mode == 'standalone'
         uses: thedoctor0/zip-release@0.7.6
         with:
           filename: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.zip
           directory: build/coj_maps_downloader.dist/
           type: 7z
-      - name: Upload workflow artifact
+      - name: Upload workflow artifact (standalone)
+        if: matrix.nuitka_mode == 'standalone'
         uses: actions/upload-artifact@v6
         with:
-          name: coj-maps-downloader-${{ matrix.platform }}
+          name: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.nuitka_mode }}
           path: build/coj_maps_downloader.dist/coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.zip
+      - name: Upload workflow artifact (onefile)
+        if: matrix.nuitka_mode == 'onefile'
+        uses: actions/upload-artifact@v6
+        with:
+          name: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.nuitka_mode }}
+          path: build/${{ matrix.nuitka_output }}
 
   release:
     runs-on: ubuntu-latest
@@ -75,6 +90,6 @@ jobs:
       - name: Create/Update GitHub Release and upload assets
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ github.ref_name }}
-          artifacts: dist/*.zip
+          tag: ${{ env.VERSION }}
+          artifacts: dist/*
           generateReleaseNotes: true
