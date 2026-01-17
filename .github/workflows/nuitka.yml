@@ -43,18 +43,17 @@ jobs:
         working-directory: ui
         run: make
       - name: Nuitka Build
-        if: matrix.nuitka_mode == 'standalone'
         uses: Nuitka/Nuitka-Action@v1.4
         with:
           script-name: coj_maps_downloader.py
           msvc: latest
           mode: ${{ matrix.nuitka_mode }}
           output-file: ${{ matrix.nuitka_output }}
-      - name: Add LICENSE
+      - name: Add LICENSE (standalone)
         if: matrix.nuitka_mode == 'standalone'
         shell: bash
         run: cp LICENSE build/coj_maps_downloader.dist/
-      - name: Create archive
+      - name: Create archive (standalone)
         if: matrix.nuitka_mode == 'standalone'
         uses: thedoctor0/zip-release@0.7.6
         with:
