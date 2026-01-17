@@ -9,7 +9,7 @@ env:
 
 jobs:
   build:
-    name: build ${{ matrix.platform }}
+    name: build ${{ matrix.platform }} (${{ matrix.nuitka_mode }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
