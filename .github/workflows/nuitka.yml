@@ -6,6 +6,8 @@ on:
 
 env:
   VERSION: ${{ github.ref_name }}
+  SCRIPT_NAME: coj_maps_downloader
+  REPO_NAME: ${{ github.event.repository.name }}
 
 jobs:
   build:
@@ -45,37 +47,37 @@ jobs:
       - name: Nuitka Build
         uses: Nuitka/Nuitka-Action@v1.4
         with:
-          script-name: coj_maps_downloader.py
+          script-name: ${{ env.SCRIPT_NAME }}.py
           msvc: latest
           mode: ${{ matrix.nuitka_mode }}
           output-file: ${{ matrix.nuitka_output }}
       - name: Add LICENSE (standalone)
         if: matrix.nuitka_mode == 'standalone'
         shell: bash
-        run: cp LICENSE build/coj_maps_downloader.dist/
+        run: cp LICENSE build/${{ env.SCRIPT_NAME }}.dist/
       - name: Create archive (standalone)
         if: matrix.nuitka_mode == 'standalone'
         uses: thedoctor0/zip-release@0.7.6
         with:
-          filename: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.zip
-          directory: build/coj_maps_downloader.dist/
+          filename: ${{ env.REPO_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}.zip
+          directory: build/${{ env.SCRIPT_NAME }}.dist/
           type: 7z
       - name: Rename onefile
         if: matrix.nuitka_mode == 'onefile'
         shell: bash
-        run: mv build/${{ matrix.nuitka_output }} coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.exe
+        run: mv build/${{ matrix.nuitka_output }} ${{ env.REPO_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}.exe
       - name: Upload workflow artifact (standalone)
         if: matrix.nuitka_mode == 'standalone'
         uses: actions/upload-artifact@v6
         with:
-          name: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.nuitka_mode }}
-          path: build/coj_maps_downloader.dist/coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.zip
+          name: ${{ env.REPO_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.nuitka_mode }}
+          path: build/${{ env.SCRIPT_NAME }}.dist/${{ env.REPO_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}.zip
       - name: Upload workflow artifact (onefile)
         if: matrix.nuitka_mode == 'onefile'
         uses: actions/upload-artifact@v6
         with:
-          name: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.nuitka_mode }}
-          path: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.exe
+          name: ${{ env.REPO_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.nuitka_mode }}
+          path: ${{ env.REPO_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}.exe
 
   release:
     runs-on: ubuntu-latest
