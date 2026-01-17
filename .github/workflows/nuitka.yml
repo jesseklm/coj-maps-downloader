@@ -60,6 +60,10 @@ jobs:
           filename: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.zip
           directory: build/coj_maps_downloader.dist/
           type: 7z
+      - name: Rename onefile
+        if: matrix.nuitka_mode == 'onefile'
+        shell: bash
+        run: mv build/${{ matrix.nuitka_output }} coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.exe
       - name: Upload workflow artifact (standalone)
         if: matrix.nuitka_mode == 'standalone'
         uses: actions/upload-artifact@v6
@@ -71,7 +75,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.nuitka_mode }}
-          path: build/${{ matrix.nuitka_output }}
+          path: coj-maps-downloader-${{ env.VERSION }}-${{ matrix.platform }}.exe
 
   release:
     runs-on: ubuntu-latest
