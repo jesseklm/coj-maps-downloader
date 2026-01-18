@@ -25,7 +25,7 @@ wheels = [
 
 [[package]]
 name = "coj-maps-downloader"
-version = "0.0.9"
+version = "0.0.10"
 source = { virtual = "." }
 dependencies = [
     { name = "httpx" },
