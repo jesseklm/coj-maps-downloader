@@ -20,23 +20,37 @@ jobs:
           - os: windows-latest
             platform: windows
             nuitka_mode: standalone
-            nuitka_output: coj_maps_downloader.exe
           - os: windows-latest
             platform: windows
             nuitka_mode: onefile
-            nuitka_output: coj_maps_downloader.exe
           - os: ubuntu-latest
             platform: linux
             nuitka_mode: standalone
-            nuitka_output: coj_maps_downloader
 
     steps:
+      - name: Set NUITKA_OUTPUT
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo "NUITKA_OUTPUT=${{ env.SCRIPT_NAME }}.exe" >> "$GITHUB_ENV"
+      - name: Set NUITKA_OUTPUT
+        if: runner.os == 'Linux'
+        shell: bash
+        run: echo "NUITKA_OUTPUT=${{ env.SCRIPT_NAME }}" >> "$GITHUB_ENV"
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.13'
+          version: '0.9.26'
       - name: Install deps
-        run: pip install --no-cache-dir --prefer-binary -r requirements.txt
+        run: uv sync --locked
+      - name: Use .venv Python (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\.venv\Scripts"
+      - name: Use .venv Python (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
       - name: Build UI (Windows)
         if: runner.os == 'Windows'
         run: ui/make.bat
@@ -50,7 +64,7 @@ jobs:
           script-name: ${{ env.SCRIPT_NAME }}.py
           msvc: latest
           mode: ${{ matrix.nuitka_mode }}
-          output-file: ${{ matrix.nuitka_output }}
+          output-file: ${{ env.NUITKA_OUTPUT }}
       - name: Add LICENSE (standalone)
         if: matrix.nuitka_mode == 'standalone'
         shell: bash
@@ -65,7 +79,7 @@ jobs:
       - name: Rename onefile
         if: matrix.nuitka_mode == 'onefile'
         shell: bash
-        run: mv build/${{ matrix.nuitka_output }} ${{ env.REPO_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}.exe
+        run: mv build/${{ env.NUITKA_OUTPUT }} ${{ env.REPO_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}.exe
       - name: Upload workflow artifact (standalone)
         if: matrix.nuitka_mode == 'standalone'
         uses: actions/upload-artifact@v6

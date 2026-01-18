@@ -1,0 +1,9 @@
+[project]
+name = "coj-maps-downloader"
+version = "0.0.9"
+requires-python = "==3.13.*"
+dependencies = [
+    "httpx~=0.28.1",
+    "pyside6~=6.10.1",
+    "qasync~=0.28.0",
+]
