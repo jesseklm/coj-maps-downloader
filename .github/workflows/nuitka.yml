@@ -46,7 +46,10 @@ jobs:
         with:
           version: '0.9.26'
       - name: Install deps
-        run: uv pip install --system --locked .
+        shell: bash
+        run: |
+          uv export --output-file requirements.lock.txt
+          uv pip install --system -r requirements.lock.txt
       - name: Build UI (Windows)
         if: runner.os == 'Windows'
         run: ui/make.bat
