@@ -10,10 +10,12 @@ import sys
 from pathlib import Path
 
 import httpx
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QFileDialog, QAbstractItemView
 from qasync import asyncSlot, QEventLoop
 
 from constants import CUSTOM_MAP_SOURCES, GAME_EXES
+from server_list_ui import ServerWidget
 from server_mod_installer import ServerModInstaller
 from ui.main import Ui_MainWindow
 from utils import find_start_folder, sha256_file, download_sha256, search_bak_and_switch, next_bak_path, \
@@ -25,6 +27,8 @@ class MainWindow(Ui_MainWindow):
         self.tasks = set()
         self.main_window = QMainWindow()
         self.setupUi(self.main_window)
+        self.server_widget: ServerWidget | None = None
+        self.actionCheck_servers.triggered.connect(self.open_server_list)
         self.pushButtonFolder.clicked.connect(self.select_folder)
         self.pushButtonFetch.clicked.connect(self.fetch_maps_clicked)
         self.pushButtonCheck.clicked.connect(self.check_maps)
@@ -50,6 +54,18 @@ class MainWindow(Ui_MainWindow):
 
     def show(self):
         self.main_window.show()
+
+    def open_server_list(self):
+        if self.server_widget is not None:
+            self.server_widget.show()
+            self.server_widget.raise_()
+            self.server_widget.activateWindow()
+            return
+        self.server_widget = ServerWidget(self.get_selected_coj_folder())
+        self.server_widget.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        self.server_widget.destroyed.connect(lambda *_: setattr(self, "server_widget", None))
+        self.server_widget.show()
+        QTimer.singleShot(0, lambda: self.server_widget.run_in_background(self.server_widget.load_servers()))
 
     def set_buttons(self, status: bool):
         for push_button in self.push_buttons:

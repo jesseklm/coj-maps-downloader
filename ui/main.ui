@@ -141,8 +141,20 @@
      <height>30</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionCheck_servers"/>
+   </widget>
+   <addaction name="menuTools"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionCheck_servers">
+   <property name="text">
+    <string>Check servers</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
