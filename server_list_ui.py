@@ -27,7 +27,7 @@ class ServerWidget(QWidget):
         self.setWindowTitle('Server List')
 
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.headers = ['ip:port', 'status', 'server_name', 'map_name', 'players', 'map_file']
+        self.headers = ['ip:port', 'status', 'server_name', 'map_name', 'players', 'map_file', 'ping']
         self.clear_table()
 
         self.background_tasks = set()

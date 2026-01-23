@@ -1,6 +1,7 @@
 import asyncio
 import os
 import socket
+import time
 from contextlib import closing
 
 from singleshot_udp_client import SingleShotUDPClient
@@ -12,6 +13,7 @@ async def coj_bib_lan_query(host: str, port: int = 27632, timeout: float = 2.0) 
     req = b"\x05\x00\x00\x00\x00\x01\x00\x00\x00" + token + b"\x00\x17\x06"
     # print("token:", token)
 
+    start_time: float = time.perf_counter()
     try:
         transport, protocol = await asyncio.get_running_loop().create_datagram_endpoint(SingleShotUDPClient,
                                                                                         remote_addr=(host, port))
@@ -25,6 +27,7 @@ async def coj_bib_lan_query(host: str, port: int = 27632, timeout: float = 2.0) 
         except (asyncio.TimeoutError, ConnectionResetError, OSError) as e:
             ret_dict['error'] = f'{e=}'
             return ret_dict
+    time_taken: float = (time.perf_counter() - start_time) * 1000.0
 
     if token != data[0x1:0xC]:
         print('token not matched!')
@@ -44,6 +47,7 @@ async def coj_bib_lan_query(host: str, port: int = 27632, timeout: float = 2.0) 
         'max_players': max_players,
         'current_players': current_players,
         'map_file': map_file,
+        'ping': f'{time_taken:.1f}',
     })
 
     if data[0x4C:0x51] != b'\x00\x74\x27\x00\x00':
