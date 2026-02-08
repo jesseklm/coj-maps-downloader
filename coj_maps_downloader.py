@@ -10,15 +10,15 @@ import sys
 from pathlib import Path
 
 import httpx
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QFileDialog, QAbstractItemView
-from qasync import asyncSlot, QEventLoop
+from PySide6.QtCore import QTimer, Qt
+from PySide6.QtWidgets import QAbstractItemView, QApplication, QFileDialog, QMainWindow, QTableWidgetItem
+from qasync import QEventLoop, asyncSlot
 
 from constants import CUSTOM_MAP_SOURCES, GAME_EXES
 from server_list_ui import ServerWidget
 from server_mod_installer import ServerModInstaller
 from ui.main import Ui_MainWindow
-from utils import find_start_folder, sha256_file, download_sha256, search_bak_and_switch, next_bak_path, \
+from utils import download_sha256, find_start_folder, next_bak_path, search_bak_and_switch, sha256_file, \
     write_bytesio_to_file
 
 
@@ -65,7 +65,7 @@ class MainWindow(Ui_MainWindow):
         self.server_widget.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         self.server_widget.destroyed.connect(lambda *_: setattr(self, "server_widget", None))
         self.server_widget.show()
-        QTimer.singleShot(0, lambda: self.server_widget.run_in_background(self.server_widget.load_servers()))
+        QTimer.singleShot(0, lambda: self.server_widget.run_in_background(self.server_widget.load_servers_button()))
 
     def set_buttons(self, status: bool):
         for push_button in self.push_buttons:

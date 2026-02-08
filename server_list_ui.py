@@ -4,8 +4,8 @@ import tomllib
 from typing import Coroutine
 
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QTableWidgetItem, QAbstractItemView, QWidget, QVBoxLayout, QTableWidget
-from qasync import QApplication, QEventLoop
+from PySide6.QtWidgets import QAbstractItemView, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+from qasync import QApplication, QEventLoop, asyncSlot
 
 from server_list import coj_bib_lan_query
 from utils import find_start_folder
@@ -20,6 +20,9 @@ class ServerWidget(QWidget):
         self.start_folder = start_folder
 
         self.layout = QVBoxLayout()
+        self.refresh_button = QPushButton('refresh')
+        self.refresh_button.clicked.connect(self.load_servers_slot)
+        self.layout.addWidget(self.refresh_button)
         self.table = QTableWidget()
         self.layout.addWidget(self.table)
         self.setLayout(self.layout)
@@ -54,7 +57,17 @@ class ServerWidget(QWidget):
         server_info['status'] = 'up'
         self.set_row(row_num, server_info)
 
+    @asyncSlot()
+    async def load_servers_slot(self):
+        await self.load_servers_button()
+
+    async def load_servers_button(self):
+        self.refresh_button.setEnabled(False)
+        await self.load_servers()
+        self.refresh_button.setEnabled(True)
+
     async def load_servers(self):
+        self.clear_table()
         server_file = self.start_folder / 'serverlist.toml'
         if not server_file.exists():
             return
@@ -92,7 +105,7 @@ async def main(app):
     app.aboutToQuit.connect(app_close_event.set)
     widget = ServerWidget(find_start_folder())
     widget.show()
-    QTimer.singleShot(0, lambda: widget.run_in_background(widget.load_servers()))
+    QTimer.singleShot(0, lambda: widget.run_in_background(widget.load_servers_button()))
     await app_close_event.wait()
 
 
