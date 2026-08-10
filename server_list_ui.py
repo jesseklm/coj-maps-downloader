@@ -7,6 +7,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QAbstractItemView, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 from qasync import QApplication, QEventLoop, asyncSlot
 
+from openspy import get_openspy_servers, qr2_ping
 from server_list import coj_bib_lan_query
 from utils import find_start_folder
 
@@ -33,6 +34,8 @@ class ServerWidget(QWidget):
         self.headers = ['ip:port', 'status', 'server_name', 'map_name', 'players', 'map_file', 'ping']
         self.clear_table()
 
+        self.openspy_servers = None
+
         self.background_tasks = set()
 
     def run_in_background(self, coro: Coroutine):
@@ -57,6 +60,26 @@ class ServerWidget(QWidget):
         server_info['status'] = 'up'
         self.set_row(row_num, server_info)
 
+    async def ping_openspy_server(self, row_num: int, host: str, ip: int):
+        ping = await qr2_ping(host, ip)
+        self.set_row(row_num, {
+            'status': 'up',
+            'ping': ping,
+        })
+
+    async def check_openspy_servers(self):
+        servers = await get_openspy_servers()
+        async with asyncio.TaskGroup() as tg:
+            for server in servers:
+                row_num = self.add_row({
+                    'ip:port': f'{server["ip"]}:{server["port"]}',
+                    'server_name': server.get('hostname'),
+                    'map_name': server.get('mapname'),
+                    'players': f'{server.get('numplayers')} / {server.get('maxplayers')}',
+                    'map_file': server.get('gamemode'),
+                })
+                tg.create_task(self.ping_openspy_server(row_num, server['ip'], server['port']))
+
     @asyncSlot()
     async def load_servers_slot(self):
         await self.load_servers_button()
@@ -67,6 +90,8 @@ class ServerWidget(QWidget):
         self.refresh_button.setEnabled(True)
 
     async def load_servers(self):
+        if self.openspy_servers is None:
+            self.openspy_servers = await get_openspy_servers()
         self.clear_table()
         server_file = self.start_folder / 'serverlist.toml'
         if not server_file.exists():
@@ -77,8 +102,14 @@ class ServerWidget(QWidget):
             data = data['serverlist']
         if 'known_servers' not in data:
             return
+        serverlist = {}
+        if self.openspy_servers:
+            for server in self.openspy_servers:
+                serverlist[f'{server["ip"]}:{server["hostport"]}'] = None
+        if data['known_servers']:
+            serverlist.update(dict.fromkeys(data['known_servers'], None))
         async with asyncio.TaskGroup() as tg:
-            for server in data['known_servers']:
+            for server in serverlist:
                 tg.create_task(self.test_server(server))
 
     def clear_table(self):

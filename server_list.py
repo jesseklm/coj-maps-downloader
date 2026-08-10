@@ -64,22 +64,7 @@ async def coj_bib_lan_query(host: str, port: int = 27632, timeout: float = 2.0) 
 
 async def main():
     servers = [
-        "51.77.58.210:27632",  # down -- GUNS MOD [RR]
-        "51.77.58.210:27633",  # down
-        "51.77.58.210:27634",  # down
-        "51.77.58.210:27635",  # down
-        "147.185.221.16:65516",  # down
-        "51.77.44.173:27632",  # down
-        "51.77.44.173:27633",  # Custom Maps [RR]
-        "51.77.44.173:27634",  # down - MANHUNT WWL - NO TNT
-        "51.77.44.173:27635",  # Dedicated Server [RR]
-        "51.77.44.173:27636",  # down
-        "185.204.170.236:27632",  # down
-        "37.32.27.14:27632",  # down
-        "151.241.226.70:27632",  # ServerTR_Turkiye
-        "94.101.187.150:27632",  # IranCoJ
-        "131.108.143.166:27632",  # down
-        "212.80.8.143:27632",  # down
+        "127.0.0.1:27632",
     ]
     tasks = []
     async with asyncio.TaskGroup() as tg:
