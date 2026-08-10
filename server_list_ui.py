@@ -73,6 +73,8 @@ class ServerWidget(QWidget):
             return
         with open(server_file, 'rb') as f:
             data = tomllib.load(f)
+        if 'serverlist' in data:
+            data = data['serverlist']
         if 'known_servers' not in data:
             return
         async with asyncio.TaskGroup() as tg:

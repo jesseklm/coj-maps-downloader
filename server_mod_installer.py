@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 import zipfile
 from pathlib import Path
 from typing import Callable
@@ -7,7 +8,7 @@ from typing import Callable
 import httpx
 
 from constants import SERVER_LIST_MOD, SERVER_LIST_MOD_URL
-from utils import sha256_file, search_bak_and_switch, next_bak_path, download_file, write_bytes_to_file
+from utils import download_file, next_bak_path, search_bak_and_switch, sha256_file, write_bytes_to_file
 
 
 class ServerModInstaller:
@@ -122,11 +123,22 @@ class ServerModInstaller:
             serverlist = bytearray(zip_file.read('serverlist.toml'))
             custom_servers = self.get_custom_servers()
             if custom_servers:
-                ind = ' ' * 4
-                servers_block = '\n' + '\n'.join(f'{ind}"{s}",' for s in custom_servers) + '\n'
-                idx = serverlist.rfind(b']')
-                if idx != -1:
-                    serverlist[idx:idx] = servers_block.encode('utf-8')
+                match = re.search(rb'(?m)^[ \t]*known_servers[ \t]*=[ \t]*\[', serverlist)
+                if match:
+                    start = match.end()
+                    end = serverlist.find(b']', start)
+                    if end != -1:
+                        block = serverlist[start:end]
+                        entries = list(re.finditer(rb'(?m)^([ \t]*"[^"\r\n]*")([ \t]*)(,?)([ \t]*(?:#.*)?)$', block))
+                        if entries:
+                            last = entries[-1]
+                            if not last.group(3):
+                                comma_pos = start + last.end(1)
+                                serverlist[comma_pos:comma_pos] = b','
+                                end += 1
+                        ind = ' ' * 4
+                        servers_block = ''.join(f'{ind}"{server}",\n' for server in custom_servers)
+                        serverlist[end:end] = servers_block.encode('utf-8')
             serverlist_path = self.coj_path / 'serverlist.toml'
             if serverlist_path.exists():
                 h = hashlib.sha256()

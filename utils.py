@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import re
 import sys
 from io import BytesIO
 from pathlib import Path
@@ -7,7 +8,7 @@ from pathlib import Path
 import anyio
 import httpx
 
-from constants import LINUX_PATH, GAME_EXES, WINDOWS_REG_KEYS
+from constants import GAME_EXES, WINDOWS_REG_KEYS
 
 
 def sha256_sync(path: Path) -> str:
@@ -87,10 +88,17 @@ async def search_bak_and_switch(file_path: Path, file_hash: str):
 
 def find_start_folder() -> Path | None:
     if sys.platform.startswith('linux'):
-        linux_folder = Path.home() / LINUX_PATH
-        for game_exe in GAME_EXES:
-            if (linux_folder / game_exe).exists():
-                return linux_folder.resolve()
+        steam_root = Path.home() / '.steam/steam'
+        library_file = steam_root / 'steamapps/libraryfolders.vdf'
+        libraries = [steam_root]
+        if library_file.exists():
+            content = library_file.read_text(encoding='utf-8', errors='ignore')
+            libraries += [Path(path) for path in re.findall(r'"path"\s+"([^"]+)"', content)]
+        for library in libraries:
+            linux_folder = library / 'steamapps/common/Call of Juarez - Bound in Blood'
+            for game_exe in GAME_EXES:
+                if (linux_folder / game_exe).exists():
+                    return linux_folder.resolve()
     elif sys.platform == 'win32':
         import winreg
         for wow_flag in (winreg.KEY_WOW64_64KEY, winreg.KEY_WOW64_32KEY):

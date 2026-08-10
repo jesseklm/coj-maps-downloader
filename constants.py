@@ -8,7 +8,6 @@ CUSTOM_MAP_SOURCES = {
         'maps': 'https://raw.githubusercontent.com/roozbehghazavi/coj2-maps-irancoj/refs/heads/main/MapsNet/'
     }
 }
-LINUX_PATH = '.steam/steam/steamapps/common/Call of Juarez - Bound in Blood/'
 WINDOWS_REG_KEYS = ((r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 21980', 'InstallLocation'),
                     (r'SOFTWARE\Techland\CallofJuarez2', 'DestinationDir'),
                     (r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\CoJ_BiB_DedicatedServer_is1',
@@ -16,6 +15,11 @@ WINDOWS_REG_KEYS = ((r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam
 GAME_EXES = ('CoJBiBGame_x86.exe', 'CoJ2Game_x86_ds.exe')
 SERVER_LIST_MOD_URL = 'https://api.github.com/repos/AlfredoAnonym/COJ-BiB-Server-List-Mod/'
 SERVER_LIST_MOD = {
+    'release-10.08.2026': {
+        'CoJ2_x86.dll': 'c87afe9f168dc5ecd19d212247dcc1d1fe62a2f429c4b0f05e85da37c5659f00',
+        'engine_x86.dll': '7544f510e8755603a83b872dc582a669c9f551db371008a20106fcd00306faec',
+        'serverlist.dll': '972d8935264e699d76e37b1bea964766b2bee73a1b37036d2689e9b9421e46f4',
+    },
     'release-02122025': {
         'CoJ2_x86.dll': '3d171f7f484a7ea5ddc7a9748ffcf302a11efe1f8ceea500c1dbe38e994bfc0c',  # steam file
         'engine_x86.dll': '10ef15b83874f46f27dcb8342dce77a4a453503fd61603e2ca21522d74c3835f',
